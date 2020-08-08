@@ -1,0 +1,13 @@
+server:
+  port: 8767
+
+spring:
+  application:
+    name: security-service
+  cloud:
+    config:
+      uri: http://config-server:9090
+      fail-fast: true
+      label: docker-compose
+  profiles:
+    active: dc

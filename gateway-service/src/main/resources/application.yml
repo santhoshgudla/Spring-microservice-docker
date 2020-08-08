@@ -1,0 +1,43 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "Access-Control-Allow-Origin"
+            allowCredentials: true
+      default-filters:
+        - name: CustomAuthFilter
+      routes:
+        - id: emailService
+          uri: lb://EMAIL-SERVICE
+          predicates:
+            - Path=/email/{*emailPath}
+          filters:
+            - SetPath={emailPath}
+
+        - id: userService
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user/{*userPath}
+          filters:
+            - SetPath={userPath}
+
+        - id: securityService
+          uri: lb://SECURITY-SERVICE
+          predicates:
+            - Path=/sec/{*authPath}
+          filters:
+            - SetPath={authPath}
+
+        - id: keycloakService
+          uri: http://localhost:8764
+          predicates:
+            - Path=/kc/{*kcPath}
+          filters:
+            - SetPath={kcPath}

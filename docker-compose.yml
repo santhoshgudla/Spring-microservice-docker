@@ -1,0 +1,66 @@
+version: '3'
+
+services:
+  config-server:
+    image: sandocker1206/blog-config-server
+    container_name: config-server
+    ports:
+      - 9090:9090
+    depends_on:
+      - eureka-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  eureka-server:
+    image: sandocker1206/blog-eureka-service
+    container_name: eureka-server
+    ports:
+      - 8761:8761
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  gateway-service:
+    image: sandocker1206/blog-gateway-service
+    container_name: gateway-service
+    ports:
+      - 8762:8762
+    depends_on:
+      - db
+      - eureka-server
+      - config-server
+      - security-service
+      - redis
+
+  security-service:
+    image: sandocker1206/blog-security-service
+    container_name: security-service
+    ports:
+      - 8767:8767
+    depends_on:
+      - db
+      - eureka-server
+      - config-server
+      - redis
+
+  db:
+    image: mysql:5.7
+    container_name: mysqldb
+    command: mysqld --user=root
+    volumes:
+      - ./mysql-dump:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: SanG@1989
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    command: [ "redis-server", "--protected-mode", "no" ]
+    hostname: redis
+    ports:
+      - 6379:6379

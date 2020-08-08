@@ -1,0 +1,20 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/santhoshgudla/cloud-config.git
+          clone-on-start: true
+      enabled: true
+
+eureka:
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka
