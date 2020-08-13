@@ -3,14 +3,11 @@ package com.generic.security.configuration;
 import com.generic.security.constant.Role;
 import com.generic.security.filter.CustomAuthentication;
 import com.generic.security.filter.CustomAuthorization;
-import com.generic.security.repository.SessionRepository;
 import com.generic.security.repository.UserRepository;
+import com.generic.security.service.SessionService;
 import com.generic.security.service.UserPrincipalService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -30,16 +27,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private UserRepository userRepository;
 
-    private SessionRepository sessionRepository;
-
-    @Value("${session.idle.timeout:300}")
-    private long sessionIdleTimeout;
+    private SessionService sessionService;
 
     public SecurityConfiguration(UserPrincipalService userPrincipalService, UserRepository userRepository,
-                                 SessionRepository sessionRepository) {
+                                 SessionService sessionService) {
         this.userPrincipalService = userPrincipalService;
         this.userRepository = userRepository;
-        this.sessionRepository = sessionRepository;
+        this.sessionService = sessionService;
     }
 
     @Override
@@ -55,9 +49,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .addFilter(new CustomAuthentication(authenticationManager(),
-                        this.sessionRepository, this.userRepository, sessionIdleTimeout))
+                        this.sessionService, this.userRepository))
                 .addFilter(new CustomAuthorization(authenticationManager(),
-                        this.userRepository, this.sessionRepository))
+                        this.userRepository, this.sessionService))
                 .authorizeRequests()
                 // configure access rules
                 .antMatchers(HttpMethod.POST, "/login").permitAll()

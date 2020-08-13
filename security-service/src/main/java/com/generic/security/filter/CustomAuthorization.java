@@ -3,12 +3,11 @@ package com.generic.security.filter;
 import com.generic.security.domain.Session;
 import com.generic.security.domain.User;
 import com.generic.security.domain.UserPrincipal;
-import com.generic.security.repository.SessionRepository;
 import com.generic.security.repository.UserRepository;
+import com.generic.security.service.SessionService;
 import com.generic.security.utils.CookieUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,21 +22,19 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
-import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
-
 public class CustomAuthorization extends BasicAuthenticationFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomAuthorization.class);
 
     private UserRepository userRepository;
 
-    private SessionRepository sessionRepository;
+    private SessionService sessionService;
 
     public CustomAuthorization(AuthenticationManager authenticationManager, UserRepository userRepository,
-                               SessionRepository sessionRepository) {
+                               SessionService sessionService) {
         super(authenticationManager);
         this.userRepository = userRepository;
-        this.sessionRepository = sessionRepository;
+        this.sessionService = sessionService;
     }
 
     @Override
@@ -61,7 +58,7 @@ public class CustomAuthorization extends BasicAuthenticationFilter {
     private Authentication getUsernamePasswordAuthentication(String accessToken) {
         if(StringUtils.isEmpty(accessToken))
             return null;
-        Optional<Session> sessionOptional = sessionRepository.findById(accessToken);
+        Optional<Session> sessionOptional = sessionService.getSession(accessToken);
         if (sessionOptional.isPresent() && sessionOptional.get().getExpiration() > 0) {
             Optional<User> userOptional = userRepository.findById(sessionOptional.get().getUserId());
             if (userOptional.isPresent()) {

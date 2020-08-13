@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class CookieUtils {
 
@@ -27,5 +28,23 @@ public class CookieUtils {
             }
         }
         return null;
+    }
+
+    public static String deleteCookies(HttpServletRequest request, HttpServletResponse response){
+        Cookie[] cookies = request.getCookies();
+        AtomicReference<String> sessionId = null;
+        if(cookies != null && cookies.length > 0) {
+            Arrays.stream(cookies).forEach(c -> {
+                if(c.getName().equalsIgnoreCase("access-token")) {
+                    sessionId.set(c.getValue());
+                }
+                c.setValue("");
+                c.setPath("/");
+                c.setMaxAge(0);
+                c.setDomain("localhost");
+                response.addCookie(c);
+            });
+        }
+        return sessionId.get();
     }
 }
